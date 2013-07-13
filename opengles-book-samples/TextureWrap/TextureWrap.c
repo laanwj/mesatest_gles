@@ -30,6 +30,7 @@ typedef struct
 
    // Offset location
    GLint offsetLoc;
+   GLint scaleLoc;
 
    // Texture handle
    GLuint textureId;
@@ -117,6 +118,7 @@ int Init ( ESContext *esContext )
    UserData *userData = esContext->userData;
    GLbyte vShaderStr[] =
       "uniform float u_offset;      \n"
+      "uniform float u_scale;      \n"
       "attribute vec4 a_position;   \n"
       "attribute vec2 a_texCoord;   \n"
       "varying vec2 v_texCoord;     \n"
@@ -124,7 +126,7 @@ int Init ( ESContext *esContext )
       "{                            \n"
       "   gl_Position = a_position; \n"
       "   gl_Position.x += u_offset;\n"
-      "   v_texCoord = a_texCoord;  \n"
+      "   v_texCoord = a_texCoord * u_scale;  \n"
       "}                            \n";
    
    GLbyte fShaderStr[] =  
@@ -148,17 +150,19 @@ int Init ( ESContext *esContext )
 
    // Get the offset location
    userData->offsetLoc = glGetUniformLocation( userData->programObject, "u_offset" );
+   userData->scaleLoc = glGetUniformLocation( userData->programObject, "u_scale" );
 
    // Load the texture
    userData->textureId = CreateTexture2D ();
 
-   glClearColor ( 0.0f, 0.0f, 0.0f, 0.0f );
+   glClearColor ( 0.2f, 0.2f, 0.2f, 0.0f );
    return GL_TRUE;
 }
 
 ///
 // Draw a triangle using the shader pair created in Init()
 //
+int frame = 0;
 void Draw ( ESContext *esContext )
 {
    UserData *userData = esContext->userData;
@@ -200,6 +204,8 @@ void Draw ( ESContext *esContext )
    glUniform1i ( userData->samplerLoc, 0 );
 
    // Draw quad with repeat wrap mode
+   glUniform1f ( userData->scaleLoc, 1.0 + frame * 0.001);
+
    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
    glUniform1f ( userData->offsetLoc, -0.7f );   
@@ -216,7 +222,7 @@ void Draw ( ESContext *esContext )
    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT );
    glUniform1f ( userData->offsetLoc, 0.7f );
    glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices );
-
+   ++frame;
 }
 
 ///
