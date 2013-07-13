@@ -376,7 +376,8 @@ int main(int argc, char *argv[])
 
         for(int frame=0; frame<NUM_FRAMES; ++frame)
         {
-            printf("Frame %i\n", frame);
+            if((frame % 100) == 0)
+                printf("Frame %i\n", frame);
             /* clear the color buffer */
             glClearColor(0.5, 0.5, 0.5, 1.0);
             glClear(GL_COLOR_BUFFER_BIT);
