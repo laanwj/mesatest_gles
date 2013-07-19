@@ -211,3 +211,73 @@ esMatrixLoadIdentity(ESMatrix *result)
     result->m[3][3] = 1.0f;
 }
 
+// From Ogre3D
+void ESUTIL_API esMatrixInverse3x3(ESMatrix *result, ESMatrix *input)
+{
+    int iRow, iCol;
+    float fDet, fInvDet;
+    // Invert a 3x3 using cofactors.  This is about 8 times faster than
+    // the Numerical Recipes code which uses Gaussian elimination.
+
+    result->m[0][0] = input->m[1][1]*input->m[2][2] -
+        input->m[1][2]*input->m[2][1];
+    result->m[0][1] = input->m[0][2]*input->m[2][1] -
+        input->m[0][1]*input->m[2][2];
+    result->m[0][2] = input->m[0][1]*input->m[1][2] -
+        input->m[0][2]*input->m[1][1];
+    result->m[0][3] = 0.0f;
+    result->m[1][0] = input->m[1][2]*input->m[2][0] -
+        input->m[1][0]*input->m[2][2];
+    result->m[1][1] = input->m[0][0]*input->m[2][2] -
+        input->m[0][2]*input->m[2][0];
+    result->m[1][2] = input->m[0][2]*input->m[1][0] -
+        input->m[0][0]*input->m[1][2];
+    result->m[1][3] = 0.0f;
+    result->m[2][0] = input->m[1][0]*input->m[2][1] -
+        input->m[1][1]*input->m[2][0];
+    result->m[2][1] = input->m[0][1]*input->m[2][0] -
+        input->m[0][0]*input->m[2][1];
+    result->m[2][2] = input->m[0][0]*input->m[1][1] -
+        input->m[0][1]*input->m[1][0];
+    result->m[2][3] = 0.0f;
+    result->m[3][0] = 0.0f;
+    result->m[3][1] = 0.0f;
+    result->m[3][2] = 0.0f;
+    result->m[3][3] = 1.0f;
+
+    fDet =
+        input->m[0][0]*result->m[0][0] +
+        input->m[0][1]*result->m[1][0]+
+        input->m[0][2]*result->m[2][0];
+
+    if ( fabsf(fDet) <= 1e-6 )
+        return;
+
+    fInvDet = 1.0f/fDet;
+    for (iRow = 0; iRow < 3; iRow++)
+    {
+        for (iCol = 0; iCol < 3; iCol++)
+            result->m[iRow][iCol] *= fInvDet;
+    }
+}
+
+void ESUTIL_API esMatrixTranspose(ESMatrix *result, ESMatrix *input)
+{
+    result->m[0][0] = input->m[0][0];
+    result->m[0][1] = input->m[1][0];
+    result->m[0][2] = input->m[2][0];
+    result->m[0][3] = input->m[3][0];
+    result->m[1][0] = input->m[0][1];
+    result->m[1][1] = input->m[1][1];
+    result->m[1][2] = input->m[2][1];
+    result->m[1][3] = input->m[3][1];
+    result->m[2][0] = input->m[0][2];
+    result->m[2][1] = input->m[1][2];
+    result->m[2][2] = input->m[2][2];
+    result->m[2][3] = input->m[3][2];
+    result->m[3][0] = input->m[0][3];
+    result->m[3][1] = input->m[1][3];
+    result->m[3][2] = input->m[2][3];
+    result->m[3][3] = input->m[3][3];
+}
+

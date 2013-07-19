@@ -274,6 +274,9 @@ void ESUTIL_API esMatrixMultiply(ESMatrix *result, ESMatrix *srcA, ESMatrix *src
 //
 void ESUTIL_API esMatrixLoadIdentity(ESMatrix *result);
 
+void ESUTIL_API esMatrixInverse3x3(ESMatrix *result, ESMatrix *input);
+void ESUTIL_API esMatrixTranspose(ESMatrix *result, ESMatrix *input);
+
 #ifdef __cplusplus
 }
 #endif

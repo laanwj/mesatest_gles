@@ -33,23 +33,18 @@
 #include <sys/mman.h>
 #include <stdarg.h>
 
-#include "esTransform.h"
+#include "esUtil.h"
 #include "eglutil.h"
 #include "dump_gl_screen.h"
 
 static EGLint const config_attribute_list[] = {
-	EGL_RED_SIZE, 8,
-	EGL_GREEN_SIZE, 8,
-	EGL_BLUE_SIZE, 8,
+	EGL_RED_SIZE, 5,
+	EGL_GREEN_SIZE, 5,
+	EGL_BLUE_SIZE, 5,
 	EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
 	EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
 	EGL_DEPTH_SIZE, 8,
 	EGL_NONE
-};
-
-static EGLint const window_attribute_list[] = {
-        EGL_RENDER_BUFFER, EGL_BACK_BUFFER,
-    EGL_NONE
 };
 
 static EGLint const pbuffer_attribute_list[] = {
@@ -59,11 +54,15 @@ static EGLint const pbuffer_attribute_list[] = {
     EGL_NONE
 };
 
+static EGLint const window_attribute_list[] = {
+        EGL_RENDER_BUFFER, EGL_BACK_BUFFER,
+    EGL_NONE
+};
+
 static const EGLint context_attribute_list[] = {
 	EGL_CONTEXT_CLIENT_VERSION, 2,
 	EGL_NONE
 };
-
 #define NUM_FRAMES (10000)
 int main(int argc, char *argv[])
 {
@@ -211,6 +210,9 @@ int main(int argc, char *argv[])
 	  +0.0f, -1.0f, +0.0f, // down
 	  +0.0f, -1.0f, +0.0f  // down
 	};
+#define VERTEX_BUFFER_SIZE 0x60000
+#define COMPONENTS_PER_VERTEX (3)
+#define NUM_VERTICES (6*4)
 
 	display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 	if (display == EGL_NO_DISPLAY) {
@@ -250,7 +252,7 @@ int main(int argc, char *argv[])
         /* frame buffer */
 	surface = eglCreateWindowSurface(display, config, 0, window_attribute_list);
 	if (surface == EGL_NO_SURFACE) {
-		printf("Error: eglCreateWindowSurface failed: %d (%s)\n",
+		printf("Error: eglCreatePbufferSurface failed: %d (%s)\n",
 		       eglGetError(), eglStrError(eglGetError()));
 		return -1;
 	}
@@ -360,28 +362,48 @@ int main(int argc, char *argv[])
 
 	glViewport(0, 0, width, height);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vVertices);
+        /* Make vertex buffer object */
+        float vtx_logical[NUM_VERTICES * COMPONENTS_PER_VERTEX * 3];
+        size_t stride = COMPONENTS_PER_VERTEX * 3;
+        int vert, comp;
+        for(vert=0; vert<NUM_VERTICES; ++vert)
+        {
+            int src_idx = vert * COMPONENTS_PER_VERTEX;
+            int dest_idx = vert * stride;
+            for(comp=0; comp<COMPONENTS_PER_VERTEX; ++comp)
+            {
+                vtx_logical[dest_idx+comp+0] = vVertices[src_idx + comp]; /* 0 */
+                vtx_logical[dest_idx+comp+3] = vNormals[src_idx + comp]; /* 1 */
+                vtx_logical[dest_idx+comp+6] = vColors[src_idx + comp]; /* 2 */
+            }
+        }
+        
+        int vbo = 0;
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vtx_logical), (void*)vtx_logical, GL_STREAM_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride*4, (void*)(0*4));
 	glEnableVertexAttribArray(0);
 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, vNormals);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride*4, (void*)(3*4));
 	glEnableVertexAttribArray(1);
 
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, vColors);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride*4, (void*)(6*4));
 	glEnableVertexAttribArray(2);
-	
+            
         GLint modelviewmatrix_handle = glGetUniformLocation(program, "modelviewMatrix");
-	GLint modelviewprojectionmatrix_handle = glGetUniformLocation(program, "modelviewprojectionMatrix");
-	GLint normalmatrix_handle = glGetUniformLocation(program, "normalMatrix");
+        GLint modelviewprojectionmatrix_handle = glGetUniformLocation(program, "modelviewprojectionMatrix");
+        GLint normalmatrix_handle = glGetUniformLocation(program, "normalMatrix");
 
-
-        for(int frame=0; frame<NUM_FRAMES; ++frame)
+        int frame;
+        for(frame=0; frame<NUM_FRAMES; ++frame)
         {
             if((frame % 100) == 0)
                 printf("Frame %i\n", frame);
             /* clear the color buffer */
             glClearColor(0.5, 0.5, 0.5, 1.0);
             glClear(GL_COLOR_BUFFER_BIT);
-
 
             ESMatrix modelview;
             esMatrixLoadIdentity(&modelview);
@@ -426,8 +448,8 @@ int main(int argc, char *argv[])
 
             //glFlush();
             eglSwapBuffers(display, surface);
-
         }
+
 	//fflush(stdout);
         //dump_gl_screen("egl2.bmp", width, height);
 
