@@ -247,7 +247,6 @@ void Draw ( ESContext *esContext )
    // Bind the texture
    glActiveTexture ( GL_TEXTURE0 );
    glBindTexture ( GL_TEXTURE_2D, userData->textureId );
-   glEnable ( GL_TEXTURE_2D );
 
    // Set the sampler texture unit to 0
    glUniform1i ( userData->samplerLoc, 0 );
