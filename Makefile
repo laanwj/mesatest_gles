@@ -24,6 +24,7 @@ CH11SRC2=./Stencil_Test/Stencil_Test.c
 CH13SRC2=./ParticleSystem/ParticleSystem.c
 CUBESRC=./Cube/cube.c
 CUBEVBOSRC=./CubeVBO/cube_vbo.c
+VIEWPORTSSRC=./Viewports/viewports.c
 
 default: all
 
@@ -38,7 +39,8 @@ all: ./Hello_Triangle/CH02_HelloTriangle \
      ./Stencil_Test/CH11_Stencil_Test \
      ./ParticleSystem/CH13_ParticleSystem \
      ./Cube/cube \
-     ./CubeVBO/cube_vbo
+     ./CubeVBO/cube_vbo \
+     ./Viewports/viewports
 
 clean:
 	find . -name "CH??_*" | xargs rm -f
@@ -69,4 +71,6 @@ clean:
 	gcc ${COMMONSRC} ${CUBESRC} -o ./$@ ${INCDIR} ${LIBS}
 ./CubeVBO/cube_vbo: ${COMMONSRC} ${COMMONHDR} ${CUBEVBOSRC}
 	gcc ${COMMONSRC} ${CUBEVBOSRC} -o ./$@ ${INCDIR} ${LIBS}
+./Viewports/viewports: ${COMMONSRC} ${COMMONHDR} ${VIEWPORTSSRC}
+	gcc ${COMMONSRC} ${VIEWPORTSSRC} -o ./$@ ${INCDIR} ${LIBS}
 
