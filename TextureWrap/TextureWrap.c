@@ -96,16 +96,14 @@ GLuint CreateTexture2D( )
    glBindTexture ( GL_TEXTURE_2D, textureId );
 
    // Set the filtering mode
-   glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+   glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
    // Load mipmap level 0
    glTexImage2D ( GL_TEXTURE_2D, 0, GL_RGB, width, height, 
                   0, GL_RGB, GL_UNSIGNED_BYTE, pixels );
-   
 
    return textureId;
-
 }
 
 
@@ -206,7 +204,7 @@ void Draw ( ESContext *esContext )
 
    // Draw quad with repeat wrap mode
    glUniform1f ( userData->scaleLoc, 1.0 + frame * 0.001);
-#if 1
+   
    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
    glUniform1f ( userData->offsetLoc, -0.7f );   
@@ -223,7 +221,7 @@ void Draw ( ESContext *esContext )
    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT );
    glUniform1f ( userData->offsetLoc, 0.7f );
    glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices );
-#endif
+   
    ++frame;
 }
 
